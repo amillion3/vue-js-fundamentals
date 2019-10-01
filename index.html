@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shopping List</title>
+  <link rel="stylesheet" href="main.css">
+  <script src="https://kit.fontawesome.com/0c2fd4e865.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="shopping-list">
+    <div class="header">
+      <h1>{{ header.toLocaleUpperCase() }}</h1>
+    </div>
+    <div class="list-button">
+      <button v-if="state==='default'" class="btn btn-add" @click="changeState('edit')">
+        <i class="fas fa-lg fa-plus"></i>
+        Add Item
+      </button>
+    </div>
+    <div v-if="state==='edit'" id="add-item-form">
+      <input type="text" v-model="newItem" placeholder="Add an item" @keyup.enter="saveItem">
+      <button class="btn btn-primary btn-item" v-bind:disabled="newItem.length === 0" @click="saveItem">
+        <i class="fas fa-lg fa-plus"></i>
+      </button>
+      <button class="btn btn-cancel btn-item" @click="changeState('default')">
+        <i class="fas fa-lg fa-minus"></i>
+      </button>
+      <!--  v:onkeyup.enter="..."   ===  @keyup.enter="..."  -->
+      <!--  v-bind:disabled="..."   ===  :disabled="..."  -->
+    </div>
+    <ul>
+      <li v-for="item in sortedItems" @click="togglePurchased(item)">
+        <i v-if="!item.purchased" class="fa-spacing fas fa-check-double fa-fw"></i>
+        <i v-if="item.purchased" class="fa-spacing fas fa-undo fa-fw"></i>
+        <span :class="[item.purchased ? 'strikeout': '', item.highPriority ? 'priority': '']">{{ item.label }}</span>
+      </li>
+    </ul>
+    <p v-if="items.length === 0">No items in your list</p>
+  </div>
+
+
+  <script src="https://unpkg.com/vue"></script>
+  <script>
+    new Vue({
+      el: '#shopping-list',
+      data: {
+        state: 'default',
+        header: 'Shopping List App',
+        newItem: '',
+        items: [
+          {
+            label: '10 party hats',
+            purchased: false,
+            highPriority: false,
+          },
+          {
+            label: '2 board games',
+            purchased: true,
+            highPriority: false,
+          },
+          {
+            label: '20 cups',
+            purchased: false,
+            highPriority: true,
+          },
+        ]
+      },
+      // Computed properties are only for transforming data for the presentation layer
+      //  DO NOT alter or mutate existing data in a computed property!
+      computed: {
+        sortedItems() {
+          const existingItems = this.items;
+          const tempActiveItems = [];
+          const tempInactiveItems = [];
+
+          for(let i = 0; i < existingItems.length; i++) {
+            if(existingItems[i].purchased === true) {
+              tempInactiveItems.push(existingItems[i]);
+            } else {
+              tempActiveItems.push(existingItems[i]);
+            }
+          }
+
+          return [...tempActiveItems, ...tempInactiveItems];
+        }
+      },
+      // When you need to change data, use a method
+      methods: {
+        saveItem: function() {
+          this.items.push({
+            label: this.newItem,
+            purchased: false,
+          });
+          this.changeState('default');
+          this.newItem = '';
+        },
+        changeState: function(newState) {
+          this.state = newState;
+          this.newItem = '';
+        },
+        togglePurchased: function(item) {
+          item.purchased = !item.purchased;
+        },
+      },
+    });
+  </script>
+</body>
+</html>
