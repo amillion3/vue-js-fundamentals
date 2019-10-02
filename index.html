@@ -2,107 +2,154 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Shopping List</title>
-  <link rel="stylesheet" href="main.css">
+  <title>Person Maintenance</title>
   <script src="https://kit.fontawesome.com/0c2fd4e865.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="main.css">
 </head>
 <body>
-  <div id="shopping-list">
-    <div class="header">
-      <h1>{{ header.toLocaleUpperCase() }}</h1>
+<div id="container-overall">
+  <div id="container-overall-person">
+
+    <div class="fragment div-header-borders">
+      <h1 class="h1-header">Person Maintenance</h1>
     </div>
-    <div class="list-button">
-      <button v-if="state==='default'" class="btn btn-add" @click="changeState('edit')">
-        <i class="fas fa-lg fa-plus"></i>
-        Add Item
-      </button>
+
+    <div v-if="success" class="fragment div-messages">
+      <h3 v-if="success" class="h3-message">Successfully Added/Updated</h3>
     </div>
-    <div v-if="state==='edit'" id="add-item-form">
-      <input type="text" v-model="newItem" placeholder="Add an item" @keyup.enter="saveItem">
-      <button class="btn btn-primary btn-item" v-bind:disabled="newItem.length === 0" @click="saveItem">
-        <i class="fas fa-lg fa-plus"></i>
-      </button>
-      <button class="btn btn-cancel btn-item" @click="changeState('default')">
-        <i class="fas fa-lg fa-minus"></i>
-      </button>
-      <!--  v:onkeyup.enter="..."   ===  @keyup.enter="..."  -->
-      <!--  v-bind:disabled="..."   ===  :disabled="..."  -->
+
+    <div v-if="state==='search'" class="container-buttons fragment">
+      <div class="container-buttons-search">
+        <input type="text" class="elem-block" placeholder="Search By...">
+        <select class="elem-block">
+          <option value="name-first">First Name</option>
+          <option value="name-last">Last Name</option>
+          <option value="email-user">Email/User Name</option>
+          <option value="phone">Phone</option>
+        </select>
+        <button class="elem-block" @click="searchClicked">Search</button>
+      </div>
+      <p style="text-align: center; margin: 8px;">or</p>
+      <div class="container-buttons-new">
+        <button class="elem-block" @click="addNewClicked">Add New Person</button>
+      </div>
     </div>
-    <ul>
-      <li v-for="item in sortedItems" @click="togglePurchased(item)">
-        <i v-if="!item.purchased" class="fa-spacing fas fa-check-double fa-fw"></i>
-        <i v-if="item.purchased" class="fa-spacing fas fa-undo fa-fw"></i>
-        <span :class="[item.purchased ? 'strikeout': '', item.highPriority ? 'priority': '']">{{ item.label }}</span>
-      </li>
-    </ul>
-    <p v-if="items.length === 0">No items in your list</p>
+
+    <div v-if="state==='edit'" class="fragment">
+
+      <div v-for="p in persons" class="container-person-info">
+        <h2 class="h2-person-title">{{p.person_last_name}}, {{p.person_first_name}}</h2>
+        <hr class="hr-person-title">
+
+        <div class="div-person-attribute">
+          <label for="personFirstName" class="label-person-field">First Name:</label>
+          <input id="personFirstName" class="input-person-field" v-model="p.person_first_name" type="text">
+        </div>
+        <div class="div-person-attribute">
+          <label for="personLastName" class="label-person-field">Last Name:</label>
+          <input id="personLastName" class="input-person-field" v-model="p.person_last_name" type="text">
+        </div>
+
+        <p v-if="error" class="input-error">All fields must be populated</p>
+
+        <div class="div-person-buttons">
+          <button @click="resetClicked">Reset</button>
+          <button @click="saveClicked">Save Changes</button>
+        </div>
+
+        <div v-if="persons.length === 0">No persons returned</div>
+
+      </div>
+    </div>
+
+    <div v-if="state==='add'" class="fragment">
+      <h2>Create New User</h2>
+      <div class="div-person-attribute">
+        <label for="personFirstName" class="label-person-field">First Name:</label>
+        <input id="personFirstName" class="input-person-field" v-model="newPerson.person_first_name" type="text">
+      </div>
+      <div class="div-person-attribute">
+        <label for="personLastName" class="label-person-field">Last Name:</label>
+        <input id="personLastName" class="input-person-field" v-model="newPerson.person_last_name" type="text">
+      </div>
+      <p v-if="error" class="input-error">Please fill out all fields</p>
+
+      <div class="div-person-buttons">
+        <button @click="resetClicked">Reset</button>
+        <button @click="saveClicked">Save Changes</button>
+      </div>
+    </div>
+
   </div>
+  <h1 class="date-huge">{{currentDate}}</h1>
+</div>
 
 
-  <script src="https://unpkg.com/vue"></script>
-  <script>
-    new Vue({
-      el: '#shopping-list',
-      data: {
-        state: 'default',
-        header: 'Shopping List App',
-        newItem: '',
-        items: [
-          {
-            label: '10 party hats',
-            purchased: false,
-            highPriority: false,
-          },
-          {
-            label: '2 board games',
-            purchased: true,
-            highPriority: false,
-          },
-          {
-            label: '20 cups',
-            purchased: false,
-            highPriority: true,
-          },
-        ]
+<script src="https://unpkg.com/vue"></script>
+<script>
+
+  new Vue({
+    el: '#container-overall',
+    data: {
+      state: 'search',
+      header: 'Person Maintenance',
+      success: false,
+      error: false,
+      currentDate: (new Date()).toLocaleDateString('en-US'),
+      newPerson: {},
+      persons: [
+        {
+          person_first_name: 'John',
+          person_last_name: 'Smith',
+        },
+        {
+          person_first_name: 'Jenny',
+          person_last_name: 'Miller',
+        },
+      ]
+    },
+    // Computed properties are only for transforming data for the presentation layer
+    //  DO NOT alter or mutate existing data in a computed property!
+    computed: {},
+    // When you need to change data, use a method
+    methods: {
+      searchClicked: function () {
+        this.state = 'edit'
       },
-      // Computed properties are only for transforming data for the presentation layer
-      //  DO NOT alter or mutate existing data in a computed property!
-      computed: {
-        sortedItems() {
-          const existingItems = this.items;
-          const tempActiveItems = [];
-          const tempInactiveItems = [];
+      addNewClicked: function () {
+        this.resetNewPerson();
+        this.state = 'add'
+      },
+      resetClicked: function () {
+        this.resetNewPerson();
+        this.state = 'search';
+        this.error = false;
+        this.success = false;
+      },
+      saveClicked: function () {
+        const {person_first_name, person_last_name} = this.newPerson;
 
-          for(let i = 0; i < existingItems.length; i++) {
-            if(existingItems[i].purchased === true) {
-              tempInactiveItems.push(existingItems[i]);
-            } else {
-              tempActiveItems.push(existingItems[i]);
-            }
-          }
-
-          return [...tempActiveItems, ...tempInactiveItems];
+        if ( person_first_name && person_last_name ) {
+          this.persons.push({
+            person_first_name,
+            person_last_name,
+          });
+          this.resetNewPerson();
+          this.state = 'search';
+          this.success = true;
+          this.error = false;
+        } else {
+          this.error = true;
         }
       },
-      // When you need to change data, use a method
-      methods: {
-        saveItem: function() {
-          this.items.push({
-            label: this.newItem,
-            purchased: false,
-          });
-          this.changeState('default');
-          this.newItem = '';
-        },
-        changeState: function(newState) {
-          this.state = newState;
-          this.newItem = '';
-        },
-        togglePurchased: function(item) {
-          item.purchased = !item.purchased;
-        },
+      resetNewPerson: function() {
+        this.newPerson = {
+          person_first_name: '',
+          person_last_name: '',
+        }
       },
-    });
-  </script>
+    },
+  });
+</script>
 </body>
 </html>
